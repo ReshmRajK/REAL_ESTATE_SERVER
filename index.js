@@ -4,9 +4,11 @@ const express=require('express')
 const server=express()
 const cors=require('cors')
 const router=require('./Routes/routing')
+const cookieParser=require('cookie-parser')
 
 require('./DB/connection')
 server.use(express.json())
+server.use(cookieParser())
 server.use(cors())
 server.use(router)
 

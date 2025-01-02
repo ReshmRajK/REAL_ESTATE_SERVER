@@ -15,7 +15,8 @@ const userSchema=new mongoose.Schema({
     },
     avatar:{
         type:String,
-        default:'https://icons.iconarchive.com/icons/graphicloads/flat-finance/256/person-icon.png'
+        default:'https://www.iconpacks.net/icons/1/free-user-icon-295-thumb.png'
+        
     },
         
 },

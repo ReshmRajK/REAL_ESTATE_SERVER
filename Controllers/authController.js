@@ -1,10 +1,10 @@
 const users = require("../Modal/userModal")
 const bcryptjs = require('bcryptjs')
-// const { errorHandler } = require("../utils/error")
 const jwt = require('jsonwebtoken')
+const { errorHandler } = require("../utils/error")
 
 
-exports.signUp = async (req, res) => {
+exports.signUp = async (req, res, next) => {
 
     const { userName, email, password } = req.body
 
@@ -25,10 +25,10 @@ exports.signUp = async (req, res) => {
         }
     }
     catch (error) {
-        res.status(400).json(error.message)
+        // res.status(400).json(error.message)
 
         // //already available error access
-        // next(error)
+        next(error)
 
         // //manually created error access
         // next(errorHandler(400,'Request API Failed'))
@@ -36,7 +36,7 @@ exports.signUp = async (req, res) => {
 
 }
 
-exports.signIn = async (req, res) => {
+exports.signIn = async (req, res, next) => {
     const { email, password } = req.body
 
     try {
@@ -50,16 +50,16 @@ exports.signIn = async (req, res) => {
         // console.log(validPsw);
 
         if (validUser && validPsw) {
-            // res.cookie("access_token",token,{httpOnly:true})
-            // .status(200).json({
+            res.cookie("access_token", token, { httpOnly: true })
+                .status(200).json(
+                    rest
+                    // message:"User Login Successfully...!",
+                )
+            // res.status(200).json({
             //     rest,
-            //     message:"User Login Successfully...!",
+            //     message: 'User Login Successfully...!',
+            //     token
             // })
-            res.status(200).json({
-                rest,
-                message: 'User Login Successfully...!',
-                token
-            })
         }
         else {
             res.status(400).json("Invalid Username or Password")
@@ -67,7 +67,8 @@ exports.signIn = async (req, res) => {
 
     }
     catch (error) {
-        res.status(401).json("Request API Failed...!!!")
+        // res.status(401).json("Request API Failed...!!!")
+        next(error)
     }
 
 }
@@ -83,26 +84,26 @@ exports.googleSignIn = async (req, res, next) => {
             const { password: pass, ...rest } = user._doc
             res.cookie("access_token", token, { httpOnly: true })
                 .status(200).json(rest)
-            // res.status(200).json({rest,token})
+            // res.status(200).json(rest)
         }
-        else{
-            const generatedPsw=Math.random().toString(36).slice(-8)+Math.random().toString(36).slice(-8)
-            const hasedPsw=bcryptjs.hashSync(generatedPsw,10)
+        else {
+            const generatedPsw = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8)
+            const hasedPsw = bcryptjs.hashSync(generatedPsw, 10)
 
-            const newUser=new users({
-                userName: req.body.name.split(" ").join("").toLowerCase()+Math.random().toString(36).slice(-4),
+            const newUser = new users({
+                userName: req.body.name.split(" ").join("").toLowerCase() + Math.random().toString(36).slice(-4),
                 email: req.body.email,
-                password:hasedPsw,
+                password: hasedPsw,
                 avatar: req.body.photo
             })
-            
+
             await newUser.save()
             const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET)
             const { password: pass, ...rest } = newUser._doc
             res.cookie("access_token", token, { httpOnly: true })
                 .status(201).json(rest)
-            // res.status(201).json({rest,token})
-            
+            // res.status(201).json(rest)
+
         }
 
     }
@@ -110,4 +111,16 @@ exports.googleSignIn = async (req, res, next) => {
         next(error)
     }
 
+}
+
+
+exports.signOut=async(req,res,next)=>{
+    try{
+        res.clearCookie("access_token");
+        res.status(200).json("User has been SignOut...!")
+
+    }
+    catch(error){
+        next(error)
+    }
 }
